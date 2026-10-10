@@ -1,6 +1,12 @@
-sudo apt -y install zsh
+#!/usr/bin/env bash
+set -euo pipefail
 
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+INSTALLER=$(mktemp)
+trap 'rm -f -- "$INSTALLER"' EXIT
+curl -fsSL --proto '=https' --proto-redir '=https' -o "$INSTALLER" https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+
+sudo apt -y install zsh
+sh "$INSTALLER"
 
 git clone git@github.com:zdharma-zmirror/fast-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/fast-syntax-highlighting
 git clone git@github.com:zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions

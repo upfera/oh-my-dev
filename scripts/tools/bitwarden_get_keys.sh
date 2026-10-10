@@ -12,7 +12,7 @@ mkdir -p "$SSH_DIR"
 chmod 700 "$SSH_DIR"
 
 # Ensure BW session exists
-if [ -z "${BW_SESSION:-}" ]; then
+if [[ -z "${BW_SESSION:-}" ]]; then
   echo "❌ BW_SESSION is not set. Run: bw unlock"
   exit 1
 fi
@@ -31,7 +31,7 @@ bw list items --session "$BW_SESSION" | jq -c '
 
   KEY_PATH="$SSH_DIR/$SAFE_NAME"
 
-  if [ -f "$KEY_PATH" ]; then
+  if [[ -f "$KEY_PATH" ]]; then
     echo "⚠️ Skipping existing key: $KEY_PATH"
     continue
   fi
@@ -41,7 +41,7 @@ bw list items --session "$BW_SESSION" | jq -c '
   echo "$PRIV_KEY" > "$KEY_PATH"
   chmod 600 "$KEY_PATH"
 
-  if [ "$PUB_KEY" != "null" ] && [ -n "$PUB_KEY" ]; then
+  if [[ "$PUB_KEY" != "null" && -n "$PUB_KEY" ]]; then
     echo "$PUB_KEY" > "$KEY_PATH.pub"
     chmod 644 "$KEY_PATH.pub"
   fi

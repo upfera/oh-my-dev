@@ -11,7 +11,7 @@ mkdir -p "$WIN_DIR"
 mkdir -p "$MOUNT_POINT"
 
 echo "[2/4] Creating disk (if missing)..."
-if [ ! -f "$DISK_FILE" ]; then
+if [[ ! -f "$DISK_FILE" ]]; then
     truncate -s "$DISK_SIZE" "$DISK_FILE"
     mkfs.ext4 -F "$DISK_FILE"
 fi

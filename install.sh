@@ -4,7 +4,10 @@ set -uo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_URL="${DEV_SETUP_REPOSITORY:-https://github.com/intosoft-tm/dev-setup.git}"
 TEMP_DIR=""
-cleanup() { [[ -z "$TEMP_DIR" || ! -d "$TEMP_DIR" ]] || rm -rf -- "$TEMP_DIR"; }
+cleanup() {
+    [[ -z "$TEMP_DIR" || ! -d "$TEMP_DIR" ]] || rm -rf -- "$TEMP_DIR"
+    return
+}
 trap cleanup EXIT INT TERM
 
 if [[ ! -d "$ROOT_DIR/scripts" ]]; then
@@ -15,7 +18,8 @@ if [[ ! -d "$ROOT_DIR/scripts" ]]; then
     ROOT_DIR="$TEMP_DIR/dev-setup"
 fi
 
-usage() { cat <<'EOF'
+usage() {
+    cat <<'EOF'
 Ubuntu Developer Setup
 
 Usage: ./install.sh [--recommended|--custom|--full|--help]
@@ -25,6 +29,7 @@ developer baseline; Custom selects supported components; Full installs all
 safe, supported components. Security-sensitive and destructive scripts remain
 manual-only.
 EOF
+    return
 }
 
 COMPONENTS=(
@@ -48,16 +53,45 @@ COMPONENTS=(
     'ssh_agent|System|SSH agent setup|scripts/system/ssh_agent.sh'
     'ssh_windows|WSL|Copy SSH keys from Windows|scripts/system/ssh_from_windows.sh'
 )
-component_field() { local id="$1" field="$2" entry cid category name script; for entry in "${COMPONENTS[@]}"; do IFS='|' read -r cid category name script <<< "$entry"; [[ "$cid" == "$id" ]] || continue; case "$field" in category) printf '%s' "$category";; name) printf '%s' "$name";; script) printf '%s' "$script";; esac; return; done; }
-component_ids() { local entry; for entry in "${COMPONENTS[@]}"; do printf '%s\n' "${entry%%|*}"; done; }
-dependencies() { case "$1" in zsh_plugins|fzf_tab|zsh_defer|oh_my_posh|oh_my_tmux) printf 'zsh\n';; podman_docker) printf 'podman\n';; esac; }
+component_field() {
+    local id="$1" field="$2" entry cid category name script
+    for entry in "${COMPONENTS[@]}"; do
+        IFS='|' read -r cid category name script <<< "$entry"
+        [[ "$cid" == "$id" ]] || continue
+        case "$field" in
+            category) printf '%s' "$category" ;;
+            name) printf '%s' "$name" ;;
+            script) printf '%s' "$script" ;;
+            *) return 1 ;;
+        esac
+        return 0
+    done
+    return 1
+}
+component_ids() {
+    local entry
+    for entry in "${COMPONENTS[@]}"; do printf '%s\n' "${entry%%|*}"; done
+    return
+}
+dependencies() {
+    case "$1" in
+        zsh_plugins|fzf_tab|zsh_defer|oh_my_posh|oh_my_tmux) printf 'zsh\n' ;;
+        podman_docker) printf 'podman\n' ;;
+        *) return 0 ;;
+    esac
+    return
+}
 SELECTED=(); INSTALLED=(); FAILED=(); SKIPPED=()
-contains() { local x; for x in "${SELECTED[@]}"; do [[ "$x" == "$1" ]] && return 0; done; return 1; }
-recommended() { SELECTED=(zsh zsh_plugins eza fzf fzf_tab fd yazi ripgrep zoxide zsh_defer oh_my_posh oh_my_tmux); }
-full() { mapfile -t SELECTED < <(component_ids); }
-is_wsl() { [[ -n "${WSL_INTEROP:-}${WSL_DISTRO_NAME:-}" || -f /proc/sys/fs/binfmt_misc/WSLInterop ]] || grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; }
-add_dependencies() { local id dep; for id in "${SELECTED[@]}"; do while IFS= read -r dep; do contains "$dep" || SELECTED=("$dep" "${SELECTED[@]}"); done < <(dependencies "$id"); done; }
-header() { printf '\n\033[1m🛠️  Ubuntu Developer Setup\033[0m\n\033[2mBuild your environment. Your way.\033[0m\n\n'; }
+contains() {
+    local x="$1" selected
+    for selected in "${SELECTED[@]}"; do [[ "$selected" == "$x" ]] && return 0; done
+    return 1
+}
+recommended() { SELECTED=(zsh zsh_plugins eza fzf fzf_tab fd yazi ripgrep zoxide zsh_defer oh_my_posh oh_my_tmux); return 0; }
+full() { mapfile -t SELECTED < <(component_ids); return 0; }
+is_wsl() { [[ -n "${WSL_INTEROP:-}${WSL_DISTRO_NAME:-}" || -f /proc/sys/fs/binfmt_misc/WSLInterop ]] || grep -qiE 'microsoft|wsl' /proc/version 2>/dev/null; return; }
+add_dependencies() { local id dep; for id in "${SELECTED[@]}"; do while IFS= read -r dep; do contains "$dep" || SELECTED=("$dep" "${SELECTED[@]}"); done < <(dependencies "$id"); done; return 0; }
+header() { printf '\n\033[1m🛠️   Ubuntu Developer Setup\033[0m\n\033[2mBuild your environment. Your way.\033[0m\n\n'; return; }
 
 main_menu() {
     header
@@ -80,8 +114,9 @@ custom() {
         IFS= read -r -s -n 1 key || return 1
         case "$key" in
             $' ') IFS='|' read -r id _ _ _ <<< "${COMPONENTS[$cursor]}"; contains "$id" && SELECTED=("${SELECTED[@]/$id/}") || SELECTED+=("$id");;
-            $'\n'|$'\r') return 0;; [qQ]) return 1;;
+            ''|$'\n'|$'\r') return 0;; [qQ]) return 1;;
             $'\033') IFS= read -r -s -n 2 key; [[ "$key" == '[A' ]] && ((cursor=(cursor+${#COMPONENTS[@]}-1)%${#COMPONENTS[@]})); [[ "$key" == '[B' ]] && ((cursor=(cursor+1)%${#COMPONENTS[@]}));;
+            *) ;;
         esac
     done
 }
@@ -95,6 +130,7 @@ run_selected() {
         if [[ "$id" == ssh_windows ]] && ! is_wsl; then SKIPPED+=("$id"); continue; fi
         if (cd "$ROOT_DIR" && bash "$ROOT_DIR/$script"); then INSTALLED+=("$id"); else FAILED+=("$id"); fi
     done
+    return 0
 }
 
 case "${1:-}" in

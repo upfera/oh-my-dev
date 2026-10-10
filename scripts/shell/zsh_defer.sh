@@ -19,7 +19,7 @@ sed -i -E '
 # Step 2: Insert zsh-defer plugin loader before first usage
 if ! grep -q '^source ~/.zsh/plugins/zsh-defer/zsh-defer.plugin.zsh' "$CONFIG_FILE"; then
   LINE_NUM=$(grep -n '^zsh-defer ' "$CONFIG_FILE" | head -n 1 | cut -d: -f1)
-  if [ -z "$LINE_NUM" ]; then
+  if [[ -z "$LINE_NUM" ]]; then
     echo "source ~/.zsh/plugins/zsh-defer/zsh-defer.plugin.zsh" >> "$CONFIG_FILE"
   else
     sed -i "${LINE_NUM}i source ~/.zsh/plugins/zsh-defer/zsh-defer.plugin.zsh" "$CONFIG_FILE"

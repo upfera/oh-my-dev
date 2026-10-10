@@ -13,9 +13,9 @@ fi
 SHELL_NAME=$(basename "$SHELL")
 
 # Determine the correct file to modify
-if [ "$SHELL_NAME" == "bash" ]; then
+if [[ "$SHELL_NAME" == "bash" ]]; then
     CONFIG_FILE="$HOME/.bashrc"
-elif [ "$SHELL_NAME" == "zsh" ]; then
+elif [[ "$SHELL_NAME" == "zsh" ]]; then
     CONFIG_FILE="$HOME/.zshrc"
 else
     echo "Unsupported shell: $SHELL_NAME. This script only supports Bash and Zsh."

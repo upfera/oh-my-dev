@@ -11,7 +11,7 @@ if ! command -v powershell.exe >/dev/null 2>&1 || ! command -v wslpath >/dev/nul
 fi
 windows_home=$(wslpath "$(powershell.exe -NoProfile -Command '$env:USERPROFILE' | tr -d '\r')")
 
-if [ -d "$windows_home/.ssh" ]; then
+if [[ -d "$windows_home/.ssh" ]]; then
     for file in "$windows_home"/.ssh/*; do
         [[ -f "$file" ]] || continue
         target="$HOME/.ssh/$(basename "$file")"

@@ -3,15 +3,15 @@
 export BW_SESSION
 BW_SESSION=$(bw unlock --raw)
 
-if [ -z "$1" ]; then
+if [[ -z "$1" ]]; then
   echo "Usage: $0 <path-to-ssh-key>"
   exit 1
 fi
 
 SSH_KEY_PATH="$1"
 
-if [ ! -f "$SSH_KEY_PATH" ]; then
-  echo "Error: File '$SSH_KEY_PATH' not found"
+if [[ ! -f "$SSH_KEY_PATH" ]]; then
+  echo "Error: File '$SSH_KEY_PATH' not found" >&2
   exit 1
 fi
 

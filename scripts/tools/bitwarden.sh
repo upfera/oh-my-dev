@@ -1,3 +1,3 @@
 #!/bin/bash
 
-npm install -g @bitwarden/cli
+npm install --global --ignore-scripts @bitwarden/cli

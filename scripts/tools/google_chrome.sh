@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DEB="/tmp/google-chrome-stable_current_amd64.deb"
+TEMP_DIR=$(mktemp -d)
+DEB="$TEMP_DIR/google-chrome-stable_current_amd64.deb"
+trap 'rm -rf -- "$TEMP_DIR"' EXIT
 
 echo "📦 Downloading Google Chrome..."
-wget -q --show-progress -O "$DEB" \
+curl -fLsS --proto '=https' --proto-redir '=https' -o "$DEB" \
   https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 
 echo "📦 Installing Chrome..."
 sudo apt install -y "$DEB"
-
-echo "🧹 Cleaning up..."
-rm -f "$DEB"
 
 echo "🔤 Installing fonts..."
 sudo apt install -y ttf-mscorefonts-installer

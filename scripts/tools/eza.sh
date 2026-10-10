@@ -1,8 +1,13 @@
 #!/bin/bash
+set -euo pipefail
 
-sudo mkdir -p /etc/apt/keyrings
-wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
-echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
+TEMP_DIR=$(mktemp -d)
+trap 'rm -rf -- "$TEMP_DIR"' EXIT
+
+curl -fsSL --proto '=https' --proto-redir '=https' -o "$TEMP_DIR/deb.asc" https://raw.githubusercontent.com/eza-community/eza/main/deb.asc
+gpg --dearmor --output "$TEMP_DIR/gierens.gpg" "$TEMP_DIR/deb.asc"
+sudo install -D -m 644 "$TEMP_DIR/gierens.gpg" /etc/apt/keyrings/gierens.gpg
+printf '%s\n' 'deb [signed-by=/etc/apt/keyrings/gierens.gpg] https://deb.gierens.de stable main' | sudo tee /etc/apt/sources.list.d/gierens.list
 sudo chmod 644 /etc/apt/keyrings/gierens.gpg /etc/apt/sources.list.d/gierens.list
 sudo apt update
 sudo apt install -y eza
