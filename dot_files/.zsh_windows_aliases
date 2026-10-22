@@ -1,0 +1,2 @@
+alias clip='iconv -f UTF-8 -t UTF-16LE | clip.exe'
+alias chezmoi='chezmoi.exe'
