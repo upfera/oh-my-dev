@@ -2,9 +2,13 @@ name: SonarCloud scan
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   scan:
